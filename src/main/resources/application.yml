@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: career-toolkit
+  datasource:
+    url: jdbc:postgresql://localhost:5435/career_toolkit
+    username: ${DB_USER:ct_user}
+    password: ${DB_PASSWORD:devpassword}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+  logging:
+    level:
+        org.hibernate.SQL: debug
