@@ -40,3 +40,12 @@ Flyway 啟動時會自動寫入一筆測試用的開發者帳號，方便本地�
 
 Email: dev@local
 ID (UUID): 00000000-0000-0000-0000-000000000001
+
+## 架構與設計決策 (Architecture & Design Decisions)
+
+- **Package 結構**：採用依功能劃分（Feature-based / Domain-driven），而非技術分層（MVC）。將同一領域（如 Block）的 Entity、Repository、Service 放在同一個 package 中，以提高內聚力並便於權限控管。
+- **資料庫同步策略**：`spring.jpa.hibernate.ddl-auto` 嚴格設定為 `validate`。資料庫結構完全交由 Flyway 控管，Hibernate 只負責在啟動時檢查 Java Entity 是否與資料庫真實結構 100% 吻合，防堵結構不一致引發的線上災難。
+- **Entity 封裝設計**：
+  - 拒絕無腦使用 Lombok `@Data`。
+  - ID 採用手動產生的 UUID，確保物件建立當下即可使用。
+  - Setter 僅開放給業務邏輯上真正允許變動的欄位，並透過領域方法（Domain Method，如 `updateContent`）連動更新相關屬性（如字數統計），維持物件內部狀態的一致性。
