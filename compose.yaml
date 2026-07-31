@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: ct-postgres
+    environment:
+      POSTGRES_USER: ct_user
+      POSTGRES_PASSWORD: devpassword
+      POSTGRES_DB: career_toolkit
+    ports:
+      - "5435:5432"
+    volumes:
+      - ct-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ct_user -d career_toolkit"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+volumes:
+  ct-pgdata:
