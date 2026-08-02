@@ -6,7 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -111,7 +113,28 @@ public class GlobalExceptionHandler {
      * 回給前端的只有這個 id。使用者回報「我看到錯誤 a1b2c3」就能直接在 log 裡撈到現場。
      */
     @ExceptionHandler(Exception.class)
-    public ProblemDetail handleUnexpected(Exception ex, HttpServletRequest request) {
+    public ResponseEntity<ProblemDetail> handleUnexpected(Exception ex, HttpServletRequest request) {
+
+        // Spring MVC 自己拋的例外——找不到路由、HTTP method 不支援、缺少必要參數、
+        // Content-Type 不被接受——在 Spring 6 之後都實作了 ErrorResponse 介面，
+        // 本身就帶著正確的狀態碼與 ProblemDetail body。要先放它們走。
+        //
+        // 少了這一段會發生什麼：它們全部被下面的 500 吃掉，
+        // 打一個不存在的網址回 500 而不是 404，用錯 method 回 500 而不是 405。
+        //
+        // 這個洞是把應用跑進容器之後隨手打幾個不存在的路徑才發現的——
+        // 在那之前 27 個測試全綠，因為測試打的都是「存在的」端點。
+        // 兜底 handler 的風險就在這裡：它會把你沒想到的東西一起吃掉。
+        //
+        //（另一種寫法是讓這個類別繼承 ResponseEntityExceptionHandler，
+        //  由框架處理那二十幾種標準例外。這裡選擇顯式判斷，因為意圖看得見。
+        //  注意 ErrorResponse 是介面不是 Throwable，不能直接寫成 @ExceptionHandler 的參數。）
+        if (ex instanceof ErrorResponse errorResponse) {
+            ProblemDetail problem = errorResponse.getBody();
+            decorate(problem, request);
+            return ResponseEntity.status(errorResponse.getStatusCode()).body(problem);
+        }
+
         String errorId = UUID.randomUUID().toString().substring(0, 8);
 
         log.error("Unhandled exception [errorId={}] on {} {}",
@@ -124,7 +147,7 @@ public class GlobalExceptionHandler {
         problem.setProperty("errorId", errorId);
         decorate(problem, request);
 
-        return problem;
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
     }
 
     private void decorate(ProblemDetail problem, HttpServletRequest request) {

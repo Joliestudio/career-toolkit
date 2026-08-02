@@ -92,6 +92,29 @@ class GlobalExceptionHandlerTest extends IntegrationTestBase {
     }
 
     /**
+     * 兜底 handler 最容易犯的錯：把 Spring MVC 自己的例外一起吃掉。
+     *
+     * 這兩個測試是在把應用跑進容器、隨手打幾個不存在的路徑之後補的——
+     * 在那之前所有測試都是打「存在的」端點，27 個全綠，但打任何不存在的網址都回 500。
+     */
+    @Test
+    void unknownPath_shouldReturn404NotServerError() throws Exception {
+        mockMvc.perform(get("/api/definitely-not-a-real-endpoint"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void wrongHttpMethod_shouldReturn405NotServerError() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        // /api/blocks/{id} 只支援 GET / PATCH / DELETE，沒有 POST
+        mockMvc.perform(post("/api/blocks/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isMethodNotAllowed());
+    }
+
+    /**
      * 這是整個 P0-c 最重要的測試。
      *
      * exception message 常常包含 SQL 語句、表名、檔案路徑、內部類別名，
