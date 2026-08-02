@@ -7,6 +7,8 @@ services:
       POSTGRES_PASSWORD: devpassword
       POSTGRES_DB: career_toolkit
     ports:
+      # 對外仍然開 5435，本機的 psql / DBeaver 還是連得到。
+      # 用 5435 是因為這台機器的 5432 被本機安裝的 PostgreSQL 佔用了。
       - "5435:5432"
     volumes:
       - ct-pgdata:/var/lib/postgresql/data
@@ -15,5 +17,24 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+
+  app:
+    build: .
+    container_name: ct-app
+    ports:
+      - "8080:8080"
+    environment:
+      # host 是 db 不是 localhost——在 compose 網路裡 service 名稱就是 hostname，
+      # localhost 在容器內指的是容器自己。這個坑幾乎每個人都會踩一次。
+      # port 是 5432（容器內部），不是 5435（對主機映射出去的那個）。
+      DB_URL: jdbc:postgresql://db:5432/career_toolkit
+      DB_USER: ct_user
+      DB_PASSWORD: devpassword
+    depends_on:
+      db:
+        # 只寫 depends_on: [db] 不夠——那只保證容器「啟動」，
+        # 不保證 PostgreSQL 已經可以接受連線。必須搭配 db 的 healthcheck。
+        condition: service_healthy
+
 volumes:
   ct-pgdata:
