@@ -75,4 +75,41 @@ export const api = {
   createBlock: (block) => request('/blocks', { method: 'POST', body: block }),
   updateBlock: (id, patch) => request(`/blocks/${id}`, { method: 'PATCH', body: patch }),
   deleteBlock: (id) => request(`/blocks/${id}`, { method: 'DELETE' }),
+
+  // ---- 公司與產業 ----
+  listIndustries: () => request('/industries'),
+  listCompanies: (search) =>
+    request('/companies' + (search ? `?search=${encodeURIComponent(search)}` : '')),
+  createCompany: (company) => request('/companies', { method: 'POST', body: company }),
+
+  // ---- 投遞 ----
+  listApplications: (status) => request('/applications' + (status ? `?status=${status}` : '')),
+  getApplication: (id) => request(`/applications/${id}`),
+  createApplication: (application) => request('/applications', { method: 'POST', body: application }),
+  updateApplication: (id, patch) => request(`/applications/${id}`, { method: 'PATCH', body: patch }),
+  deleteApplication: (id) => request(`/applications/${id}`, { method: 'DELETE' }),
+  changeStatus: (id, status, note) =>
+    request(`/applications/${id}/status`, { method: 'POST', body: { status, note } }),
+  statusHistory: (id) => request(`/applications/${id}/history`),
+
+  // ---- 面試 ----
+  upcomingInterviews: (days = 14) => request(`/interviews/upcoming?days=${days}`),
+  listInterviews: (applicationId) => request(`/applications/${applicationId}/interviews`),
+  createInterview: (applicationId, interview) =>
+    request(`/applications/${applicationId}/interviews`, { method: 'POST', body: interview }),
+  updateInterview: (id, patch) => request(`/interviews/${id}`, { method: 'PATCH', body: patch }),
+
+  // ---- 面試檢討 ----
+  getReview: (interviewId) => request(`/interviews/${interviewId}/review`),
+  saveReview: (interviewId, review) =>
+    request(`/interviews/${interviewId}/review`, { method: 'PUT', body: review }),
+  reviewsForApplication: (applicationId) => request(`/applications/${applicationId}/reviews`),
+
+  // ---- Offer ----
+  listOffers: () => request('/offers'),
+  getOffer: (applicationId) => request(`/applications/${applicationId}/offer`),
+  saveOffer: (applicationId, offer) =>
+    request(`/applications/${applicationId}/offer`, { method: 'PUT', body: offer }),
+  decideOffer: (offerId, decision, declineReason) =>
+    request(`/offers/${offerId}/decision`, { method: 'POST', body: { decision, declineReason } }),
 }
