@@ -1,5 +1,6 @@
 package com.Jolie.career_toolkit.common;
 
+import com.Jolie.career_toolkit.application.IllegalStatusTransitionException;
 import com.Jolie.career_toolkit.auth.EmailAlreadyRegisteredException;
 import com.Jolie.career_toolkit.block.BlockNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,6 +50,41 @@ public class GlobalExceptionHandler {
         // 404 是預期中的情況，不是系統故障——用 debug 而不是 error，
         // 否則正常使用就會把 log 洗滿，真正的錯誤反而被淹掉。
         log.debug("Block not found: {}", ex.getBlockId());
+        return problem;
+    }
+
+    /** 找不到資源——包含「不屬於你」的情況，一律 404 不 403。 */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ProblemDetail handleResourceNotFound(ResourceNotFoundException ex,
+                                                HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND, "找不到指定的資料");
+        problem.setType(URI.create(BASE_TYPE + "not-found"));
+        problem.setTitle(ex.getResource() + " not found");
+        decorate(problem, request);
+
+        log.debug("Resource not found: {}", ex.getMessage());
+        return problem;
+    }
+
+    /**
+     * 非法的狀態轉換。
+     *
+     * 錯誤訊息一定要說得出「那我可以改成什麼」——只說「不能這樣改」的話，
+     * 使用者只能一個一個試。allowed 欄位讓前端可以直接把選項改對。
+     */
+    @ExceptionHandler(IllegalStatusTransitionException.class)
+    public ProblemDetail handleIllegalTransition(IllegalStatusTransitionException ex,
+                                                 HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, ex.describeAllowed());
+        problem.setType(URI.create(BASE_TYPE + "illegal-status-transition"));
+        problem.setTitle("Illegal status transition");
+        problem.setProperty("from", ex.getFrom());
+        problem.setProperty("to", ex.getTo());
+        problem.setProperty("allowed", ex.getAllowed());
+        decorate(problem, request);
+
         return problem;
     }
 
