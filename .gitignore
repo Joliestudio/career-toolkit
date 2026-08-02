@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### 本機密鑰 ###
+# P7 的 LLM API key 走環境變數，application.yml 裡不給預設值。
+# CI 有 gitleaks 把關，但第一道防線還是不要讓這些檔案進版控。
+.env
+.env.*
+!.env.example

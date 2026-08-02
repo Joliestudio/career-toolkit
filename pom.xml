@@ -81,16 +81,24 @@
 			<artifactId>spring-boot-testcontainers</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!--
+			Testcontainers 2.x 把所有模組的 artifactId 都加上了 testcontainers- 前綴：
+			  org.testcontainers:postgresql    → org.testcontainers:testcontainers-postgresql
+			  org.testcontainers:junit-jupiter → org.testcontainers:testcontainers-junit-jupiter
+
+			用舊名稱時 BOM 管不到，所以必須自己釘版本，於是 classpath 上同時存在
+			testcontainers 2.0.5（spring-boot-testcontainers 拉進來的）與 1.20.1 的模組。
+			混用 major 版本平常碰巧能跑，之後會以 NoSuchMethodError 在 CI 上爆掉。
+			改用新名稱後由 spring-boot-dependencies 4.1.0 的 BOM 統一管理，不需要寫 version。
+		-->
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>1.20.1</version>
+			<artifactId>testcontainers-postgresql</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>junit-jupiter</artifactId>
-			<version>1.20.1</version>
+			<artifactId>testcontainers-junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
