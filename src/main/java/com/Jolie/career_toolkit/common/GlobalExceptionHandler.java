@@ -1,5 +1,6 @@
 package com.Jolie.career_toolkit.common;
 
+import com.Jolie.career_toolkit.auth.EmailAlreadyRegisteredException;
 import com.Jolie.career_toolkit.block.BlockNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -8,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -46,6 +49,60 @@ public class GlobalExceptionHandler {
         // 404 是預期中的情況，不是系統故障——用 debug 而不是 error，
         // 否則正常使用就會把 log 洗滿，真正的錯誤反而被淹掉。
         log.debug("Block not found: {}", ex.getBlockId());
+        return problem;
+    }
+
+    /**
+     * 登入失敗。
+     *
+     * 訊息刻意寫成「帳號或密碼錯誤」，不區分是哪一個。
+     * 一旦區分開來，任何人都可以拿這個端點逐一測試哪些 email 有註冊過
+     * ——這叫使用者列舉（user enumeration）。
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ProblemDetail handleAuthenticationFailure(AuthenticationException ex,
+                                                     HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNAUTHORIZED, "帳號或密碼錯誤");
+        problem.setType(URI.create(BASE_TYPE + "bad-credentials"));
+        problem.setTitle("Authentication failed");
+        decorate(problem, request);
+
+        log.debug("Authentication failed on {}: {}", request.getRequestURI(), ex.getMessage());
+        return problem;
+    }
+
+    /**
+     * 權限不足。
+     *
+     * 為什麼需要這個 handler：SecurityConfig 裡用 requestMatchers 設的規則是在
+     * AuthorizationFilter 檢查的（DispatcherServlet 之前），拋出的例外由
+     * ExceptionTranslationFilter 交給 RestAccessDeniedHandler，不會經過這裡。
+     *
+     * 但 @PreAuthorize 是在方法被呼叫時檢查的，例外在 DispatcherServlet 內部拋出，
+     * 會直接掉進 @RestControllerAdvice——少了這個 handler 就會變成 500 而不是 403。
+     * 同一種「權限不足」，走兩條不同的路徑，這件事很容易漏。
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ProblemDetail handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.FORBIDDEN, "權限不足");
+        problem.setType(URI.create(BASE_TYPE + "access-denied"));
+        problem.setTitle("Access denied");
+        decorate(problem, request);
+
+        return problem;
+    }
+
+    @ExceptionHandler(EmailAlreadyRegisteredException.class)
+    public ProblemDetail handleEmailTaken(EmailAlreadyRegisteredException ex,
+                                          HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT, "這個 email 已經註冊過了");
+        problem.setType(URI.create(BASE_TYPE + "email-already-registered"));
+        problem.setTitle("Email already registered");
+        decorate(problem, request);
+
         return problem;
     }
 

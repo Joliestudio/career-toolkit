@@ -14,6 +14,22 @@ spring:
         format_sql: true
   flyway:
     enabled: true
+  session:
+    # session 存進資料庫，重啟應用不會把所有人登出，停權時也能直接刪掉某人的 session
+    store-type: jdbc
+    timeout: 7d
+    jdbc:
+      # 表由 Flyway 的 V3 建立。schema 只能有一個負責人，
+      # 讓兩套機制都能改資料庫遲早會出現「本機好好的、別台機器少一張表」。
+      initialize-schema: never
+
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true       # JavaScript 讀不到 session cookie，降低 XSS 竊取的風險
+        same-site: lax        # 擋掉大部分跨站請求，是 CSRF 防護之外的第二層
+        secure: ${COOKIE_SECURE:false}   # P8 上線走 HTTPS 時設成 true
 
 # logging 必須在 root level。之前它被縮排在 spring: 底下，
 # Spring 完全不會綁定，也不會發出任何警告——設定就這樣靜默失效。

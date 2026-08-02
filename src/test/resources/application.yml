@@ -1,0 +1,31 @@
+# 測試環境專用設定。src/test/resources 的 application.yml 會蓋掉 src/main 的同名檔，
+# 所以這裡要把 main 的內容也一併寫齊（datasource 由 Testcontainers 的 @ServiceConnection 覆寫）。
+
+spring:
+  application:
+    name: career-toolkit
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+  # 測試不要用 JDBC session。
+  #
+  # 原因：JdbcIndexedSessionRepository.save() 是在 PROPAGATION_REQUIRES_NEW 裡執行的。
+  # 整合測試標了 @Transactional（讓每個測試自動 rollback），外層交易握著 spring_session
+  # 的列鎖不放，內層的 REQUIRES_NEW 想更新同一批列就會卡住，連線一直被佔著。
+  # 累積到 Hikari 的連線池滿了之後，後面每一個請求都要等滿 30 秒（connectionTimeout）才失敗。
+  #
+  # 症狀非常有迷惑性：單獨跑某個測試類別全綠，一起跑就整批逾時——因為污染是跨類別累積的。
+  #
+  # 測試改用記憶體 session，等價於驗證 SecurityContext 有沒有被正確存進 HttpSession，
+  # 那正是要釘住的行為。「重啟應用仍保持登入」是 JDBC session 才有的性質，
+  # 用真的容器重啟來驗證比在單元測試裡模擬更有意義。
+  autoconfigure:
+    exclude: org.springframework.boot.session.jdbc.autoconfigure.JdbcSessionAutoConfiguration
+
+logging:
+  level:
+    org.hibernate.SQL: info

@@ -2,6 +2,7 @@ package com.Jolie.career_toolkit.block;
 
 import com.Jolie.career_toolkit.block.dto.CreateBlockRequest;
 import com.Jolie.career_toolkit.block.dto.UpdateBlockRequest;
+import com.Jolie.career_toolkit.user.CurrentUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,36 +24,40 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class BlockService {
 
-    // TODO P1: 換成從 SecurityContext 取得的登入使用者
-    private static final UUID DEV_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
-
     // 建構子注入而不是 @Autowired 欄位注入：依賴變成必填（少給一個編譯就不過），
     // 欄位可以是 final，而且單元測試裡可以直接 new，不需要啟動 Spring。
     private final BlockRepository blockRepository;
+    private final CurrentUser currentUser;
 
-    public BlockService(BlockRepository blockRepository) {
+    public BlockService(BlockRepository blockRepository, CurrentUser currentUser) {
         this.blockRepository = blockRepository;
+        this.currentUser = currentUser;
     }
 
     @Transactional
     public Block createBlock(CreateBlockRequest request) {
-        Block block = new Block(DEV_USER_ID, request.type(), request.title(), request.content());
+        Block block = new Block(currentUser.id(), request.type(), request.title(), request.content());
         return blockRepository.save(block);
     }
 
     public List<Block> getBlocks(BlockType type) {
+        UUID userId = currentUser.id();
+
         return type == null
-                ? blockRepository.findByUserIdAndDeletedAtIsNull(DEV_USER_ID)
-                : blockRepository.findByUserIdAndTypeAndDeletedAtIsNull(DEV_USER_ID, type);
+                ? blockRepository.findByUserIdAndDeletedAtIsNull(userId)
+                : blockRepository.findByUserIdAndTypeAndDeletedAtIsNull(userId, type);
     }
 
     /**
      * 用 findByIdAndUserIdAndDeletedAtIsNull 而不是 findById() 再自己 filter。
      * 差別在於所有權條件是在 SQL 的 WHERE 裡，不是撈回來之後才在記憶體裡篩——
      * 前者不可能忘記，後者只要少寫一行 filter 就是跨帳號讀取。
+     *
+     * 查不到時回 404 而不是 403：403 等於告訴對方「這個 id 真的存在，只是不屬於你」，
+     * 那本身就是資訊洩漏——可以拿來逐一探測哪些 id 是有效的。
      */
     public Block getBlock(UUID id) {
-        return blockRepository.findByIdAndUserIdAndDeletedAtIsNull(id, DEV_USER_ID)
+        return blockRepository.findByIdAndUserIdAndDeletedAtIsNull(id, currentUser.id())
                 .orElseThrow(() -> new BlockNotFoundException(id));
     }
 

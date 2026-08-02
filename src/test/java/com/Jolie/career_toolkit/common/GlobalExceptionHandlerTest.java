@@ -3,18 +3,23 @@ package com.Jolie.career_toolkit.common;
 import com.Jolie.career_toolkit.IntegrationTestBase;
 import com.Jolie.career_toolkit.block.BlockNotFoundException;
 import com.Jolie.career_toolkit.block.BlockService;
+import com.Jolie.career_toolkit.user.AppUserDetails;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -25,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 替代品是 spring-test 的 @MockitoBean。所有 Boot 3.x 的教學在這裡都會編譯失敗。
  */
 @AutoConfigureMockMvc
+@Transactional
 class GlobalExceptionHandlerTest extends IntegrationTestBase {
 
     @Autowired
@@ -33,12 +39,19 @@ class GlobalExceptionHandlerTest extends IntegrationTestBase {
     @MockitoBean
     private BlockService blockService;
 
+    private AppUserDetails me;
+
+    @BeforeEach
+    void setUp() {
+        me = createUser(uniqueEmail("handler"));
+    }
+
     @Test
     void notFound_shouldReturn404AsProblemDetail() throws Exception {
         UUID missing = UUID.fromString("00000000-0000-0000-0000-000000000999");
         given(blockService.getBlock(missing)).willThrow(new BlockNotFoundException(missing));
 
-        mockMvc.perform(get("/api/blocks/{id}", missing))
+        mockMvc.perform(get("/api/blocks/{id}", missing).with(user(me)))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(404))
@@ -51,7 +64,7 @@ class GlobalExceptionHandlerTest extends IntegrationTestBase {
 
     @Test
     void validationFailure_shouldReturn400AndNameTheOffendingField() throws Exception {
-        mockMvc.perform(post("/api/blocks")
+        mockMvc.perform(post("/api/blocks").with(user(me)).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"type":"SKILL","title":"","content":"x"}
@@ -65,7 +78,7 @@ class GlobalExceptionHandlerTest extends IntegrationTestBase {
 
     @Test
     void validationFailure_shouldReportEveryOffendingField() throws Exception {
-        mockMvc.perform(post("/api/blocks")
+        mockMvc.perform(post("/api/blocks").with(user(me)).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"type":"SKILL","title":"","content":""}
@@ -77,14 +90,14 @@ class GlobalExceptionHandlerTest extends IntegrationTestBase {
 
     @Test
     void invalidUuidInPath_shouldReturn400NotServerError() throws Exception {
-        mockMvc.perform(get("/api/blocks/{id}", "not-a-uuid"))
+        mockMvc.perform(get("/api/blocks/{id}", "not-a-uuid").with(user(me)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("Invalid parameter"));
     }
 
     @Test
     void malformedJson_shouldReturn400() throws Exception {
-        mockMvc.perform(post("/api/blocks")
+        mockMvc.perform(post("/api/blocks").with(user(me)).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"type\":\"SKILL\",")) // 少了收尾
                 .andExpect(status().isBadRequest())
@@ -99,7 +112,7 @@ class GlobalExceptionHandlerTest extends IntegrationTestBase {
      */
     @Test
     void unknownPath_shouldReturn404NotServerError() throws Exception {
-        mockMvc.perform(get("/api/definitely-not-a-real-endpoint"))
+        mockMvc.perform(get("/api/definitely-not-a-real-endpoint").with(user(me)))
                 .andExpect(status().isNotFound());
     }
 
@@ -108,7 +121,7 @@ class GlobalExceptionHandlerTest extends IntegrationTestBase {
         UUID id = UUID.randomUUID();
 
         // /api/blocks/{id} 只支援 GET / PATCH / DELETE，沒有 POST
-        mockMvc.perform(post("/api/blocks/{id}", id)
+        mockMvc.perform(post("/api/blocks/{id}", id).with(user(me)).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isMethodNotAllowed());
@@ -128,7 +141,7 @@ class GlobalExceptionHandlerTest extends IntegrationTestBase {
         given(blockService.getBlocks(any()))
                 .willThrow(new IllegalStateException(leakyMessage));
 
-        String body = mockMvc.perform(get("/api/blocks"))
+        String body = mockMvc.perform(get("/api/blocks").with(user(me)))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.detail").value("系統發生錯誤，請稍後再試"))
                 // errorId 讓使用者回報時能對應到 log 裡的完整 stack trace
