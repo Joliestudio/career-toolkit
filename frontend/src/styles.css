@@ -1,0 +1,183 @@
+:root {
+  --bg: #faf9f7;
+  --surface: #ffffff;
+  --border: #e5e3de;
+  --text: #2b2a27;
+  --muted: #75736d;
+  --accent: #2f6f4f;
+  --accent-soft: #eaf3ee;
+  --danger: #b3402c;
+  --warn: #b8791f;
+  --radius: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1a18;
+    --surface: #242320;
+    --border: #38352f;
+    --text: #e8e6e0;
+    --muted: #9c9a92;
+    --accent: #6db08a;
+    --accent-soft: #23342b;
+    --danger: #e0755f;
+    --warn: #d9a441;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans TC", sans-serif;
+  line-height: 1.6;
+}
+
+.boot { padding: 4rem; text-align: center; color: var(--muted); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+}
+
+/* ---------- 登入 ---------- */
+
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+.auth-card { width: 100%; max-width: 400px; }
+.auth-title { margin: 0 0 .25rem; font-size: 1.5rem; }
+.auth-subtitle { margin: 0 0 1.25rem; color: var(--muted); font-size: .9rem; }
+
+.tabs { display: flex; gap: .25rem; margin-bottom: 1rem; }
+.tab {
+  flex: 1; padding: .5rem; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); cursor: pointer;
+  border-radius: 8px; font: inherit;
+}
+.tab-active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+
+/* ---------- 表單 ---------- */
+
+.field { display: block; margin-bottom: .9rem; }
+.field > span { display: block; font-size: .85rem; color: var(--muted); margin-bottom: .3rem; }
+.optional { color: var(--muted); font-weight: normal; }
+
+.field input, .field select, .field textarea {
+  width: 100%; padding: .55rem .7rem; font: inherit;
+  color: var(--text); background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+.field textarea { resize: vertical; min-height: 7rem; }
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: 2px solid var(--accent); outline-offset: -1px;
+}
+.field-error { display: block; margin-top: .3rem; color: var(--danger); font-size: .82rem; font-style: normal; }
+
+.alert {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  border: 1px solid var(--danger); color: var(--danger);
+  padding: .6rem .8rem; border-radius: 8px; margin-bottom: .9rem; font-size: .88rem;
+}
+
+/* ---------- 按鈕 ---------- */
+
+.btn {
+  padding: .5rem .9rem; font: inherit; cursor: pointer;
+  border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text);
+}
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-ghost { background: transparent; color: var(--muted); }
+.btn-ghost:hover:not(:disabled) { color: var(--text); }
+.btn-danger { background: transparent; border-color: var(--danger); color: var(--danger); }
+.btn-block { width: 100%; }
+
+.chip {
+  padding: .3rem .7rem; font: inherit; font-size: .85rem; cursor: pointer;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); border-radius: 999px;
+}
+.chip-active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+
+/* ---------- 版面 ---------- */
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .8rem 1.25rem; border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.brand { font-weight: 600; }
+.topbar-right { display: flex; align-items: center; gap: .6rem; }
+.whoami { color: var(--muted); font-size: .85rem; }
+.badge {
+  background: var(--accent-soft); color: var(--accent);
+  padding: .1rem .5rem; border-radius: 999px; font-size: .75rem;
+}
+
+.main { max-width: 820px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+
+.toolbar {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap;
+}
+.filters { display: flex; gap: .35rem; flex-wrap: wrap; }
+
+.muted { color: var(--muted); }
+.empty { text-align: center; color: var(--text); }
+.empty p { margin: .3rem 0; }
+
+/* ---------- 積木列表 ---------- */
+
+.block-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .8rem; }
+.block-head { display: flex; align-items: center; gap: .6rem; margin-bottom: .5rem; }
+.block-title { margin: 0; font-size: 1rem; flex: 1; }
+.block-count { color: var(--muted); font-size: .8rem; white-space: nowrap; }
+.tag {
+  background: var(--accent-soft); color: var(--accent);
+  padding: .1rem .5rem; border-radius: 6px; font-size: .75rem; white-space: nowrap;
+}
+.block-content {
+  margin: 0 0 .7rem; color: var(--muted); font-size: .9rem;
+  white-space: pre-wrap; word-break: break-word;
+}
+.block-actions { display: flex; gap: .4rem; justify-content: flex-end; }
+
+/* ---------- 編輯器 ---------- */
+
+.editor { margin-bottom: 1.25rem; }
+.editor-title { margin: 0 0 1rem; font-size: 1.05rem; }
+.editor-actions { display: flex; gap: .5rem; justify-content: flex-end; margin-top: 1rem; }
+
+/* ---------- 字數計數器 ---------- */
+
+.counter {
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: .7rem .8rem; background: var(--bg);
+}
+.counter-limits { display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; margin-bottom: .6rem; }
+.counter-label { font-size: .8rem; color: var(--muted); margin-right: .2rem; }
+.counter-custom {
+  width: 5rem; padding: .25rem .4rem; font: inherit; font-size: .85rem;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface); color: var(--text);
+}
+
+.counter-readout { display: flex; align-items: center; gap: .6rem; margin-bottom: .5rem; }
+.counter-count { font-variant-numeric: tabular-nums; font-size: .95rem; }
+.counter-close { color: var(--warn); }
+.counter-over { color: var(--danger); font-weight: 600; }
+.counter-warning { color: var(--danger); font-size: .82rem; }
+.counter-readout .btn { margin-left: auto; padding: .25rem .6rem; font-size: .82rem; }
+
+.counter-bar { height: 4px; background: var(--border); border-radius: 999px; overflow: hidden; }
+.counter-fill { height: 100%; background: var(--accent); transition: width .15s ease; }
+.counter-fill-over { background: var(--danger); }
