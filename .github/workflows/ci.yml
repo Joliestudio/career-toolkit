@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# 同一個 branch 有新的 push 時，取消還在跑的舊 workflow
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      # Testcontainers 會自己起一個 PostgreSQL 容器。
+      # ubuntu-latest runner 內建 Docker，所以不需要 services: postgres——
+      # 也正因如此，測試絕對不能依賴 application.yml 裡的 localhost:5435。
+      - name: Build and test
+        run: ./mvnw --batch-mode --no-transfer-progress clean verify
+
+      - name: Upload test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
+          retention-days: 7
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # gitleaks 要掃整個 commit 歷史，不是只有 HEAD
+
+      # 直接跑 gitleaks 映像檔而不是用 gitleaks-action：
+      # action 對 organization 帳號需要授權金鑰，映像檔沒有這個限制。
+      - name: Run gitleaks
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest \
+            detect --source=/repo --redact --verbose --no-banner

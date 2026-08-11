@@ -1,6 +1,8 @@
 package com.Jolie.career_toolkit.block;
 
 import com.Jolie.career_toolkit.IntegrationTestBase;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,9 @@ public class BlockRepositoryTest extends IntegrationTestBase {
 
     @Autowired
     private BlockRepository blockRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     // 直接使用 Flyway V2 塞入的開發者 UUID，這樣寫入 block 就不會違反 FK 限制
     private final UUID devUserId = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -52,6 +57,58 @@ public class BlockRepositoryTest extends IntegrationTestBase {
         // Assert
         assertThat(results).hasSize(1);
         assertThat(results.get(0).getTitle()).isEqualTo("使用中");
+    }
+
+    @Test
+    void findByType_shouldReturnOnlyThatType() {
+        // Arrange：同一個使用者、兩種不同 type
+        blockRepository.save(new Block(devUserId, BlockType.SKILL, "技能", "Java"));
+        blockRepository.save(new Block(devUserId, BlockType.EXPERIENCE, "經歷", "後端工程師"));
+
+        // Act
+        List<Block> results = blockRepository.findByUserIdAndTypeAndDeletedAtIsNull(devUserId, BlockType.SKILL);
+
+        // Assert
+        // 這個測試存在的理由：原本的方法名是 findByUserIdAndDeletedAtIsNull(UUID, BlockType)，
+        // 只宣告了 UserId 與 DeletedAtIsNull 兩個條件。Spring Data 依「方法名」推導查詢，
+        // 多出來的 type 參數被靜默忽略 —— 不會拋錯，只是回傳未篩選的 2 筆。
+        // 條件必須寫進方法名才會生效。
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getType()).isEqualTo(BlockType.SKILL);
+    }
+
+    @Test
+    void findByIdAndUserId_shouldNotReturnOtherUsersBlock() {
+        // Arrange
+        Block mine = blockRepository.save(new Block(devUserId, BlockType.SKILL, "我的", "只有我看得到"));
+        UUID someoneElse = UUID.fromString("00000000-0000-0000-0000-0000000000ff");
+
+        // Act
+        Optional<Block> asOwner = blockRepository.findByIdAndUserIdAndDeletedAtIsNull(mine.getId(), devUserId);
+        Optional<Block> asStranger = blockRepository.findByIdAndUserIdAndDeletedAtIsNull(mine.getId(), someoneElse);
+
+        // Assert：用別人的 userId 查同一個 id 必須查不到 —— 這是 P1 權限隔離的基礎
+        assertThat(asOwner).isPresent();
+        assertThat(asStranger).isEmpty();
+    }
+
+    @Test
+    void tags_shouldRoundTripThroughJsonbColumn() {
+        // Arrange
+        Block block = new Block(devUserId, BlockType.SKILL, "Java", "內容");
+        block.setTags(List.of("backend", "spring"));
+        UUID id = blockRepository.saveAndFlush(block).getId();
+
+        // 清掉一級快取，強制真的從資料庫重讀——否則 findById 只會把同一個
+        // Java 物件還給你，根本沒有經過 JSONB 的序列化與反序列化。
+        entityManager.clear();
+
+        // Act
+        Block reloaded = blockRepository.findById(id).orElseThrow();
+
+        // Assert：tags 欄位在 DB 早就存在，但 entity 之前沒映射它。
+        // ddl-auto: validate 不會抓到這種漏映射，因為它只檢查「entity 有的欄位 DB 也要有」。
+        assertThat(reloaded.getTags()).containsExactly("backend", "spring");
     }
 
     @Test

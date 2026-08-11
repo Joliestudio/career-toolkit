@@ -1,2 +1,10 @@
+# 這台開發機的 core.autocrlf = true。對要在 Linux runner 與 Docker 容器裡執行的檔案，
+# CRLF 會造成 /bin/sh: bad interpreter: /bin/sh^M——這種錯誤不會出現在本機，只會在 CI 上爆。
 /mvnw text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+
+# Windows 批次檔維持 CRLF
 *.cmd text eol=crlf
