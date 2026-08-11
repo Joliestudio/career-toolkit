@@ -3,8 +3,10 @@ services:
     image: postgres:17-alpine
     container_name: ct-postgres
     environment:
-      POSTGRES_USER: ct_user
-      POSTGRES_PASSWORD: devpassword
+      POSTGRES_USER: ${DB_USER:-ct_user}
+      # 密碼從 .env 讀。沒有 .env 時退回 devpassword 只是為了讓
+      # 「clone 下來立刻能跑」這件事成立——正式環境一定要設 .env。
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-devpassword}
       POSTGRES_DB: career_toolkit
     ports:
       # 綁在 127.0.0.1，不是預設的 0.0.0.0。
@@ -29,15 +31,30 @@ services:
     build: .
     container_name: ct-app
     ports:
-      - "8080:8080"
+      # 綁 127.0.0.1，不是預設的 0.0.0.0。
+      #
+      # cloudflared 是從本機連過來的，所以 localhost 就夠。綁到所有介面的話，
+      # 同網段的人可以直接連 8080 —— 那等於繞過了 Cloudflare 這一層
+      # （包括之後可能加上的 Cloudflare Access 門禁）。
+      - "127.0.0.1:8080:8080"
     environment:
       # host 是 db 不是 localhost——在 compose 網路裡 service 名稱就是 hostname，
       # localhost 在容器內指的是容器自己。這個坑幾乎每個人都會踩一次。
       # port 是 5432（容器內部），不是 5435（對主機映射出去的那個）。
       DB_URL: jdbc:postgresql://db:5432/career_toolkit
-      DB_USER: ct_user
-      DB_PASSWORD: devpassword
+      DB_USER: ${DB_USER:-ct_user}
+      DB_PASSWORD: ${DB_PASSWORD:-devpassword}
       STORAGE_ROOT: /var/lib/career-toolkit/files
+      SELECTION_DAILY_QUOTA: ${SELECTION_DAILY_QUOTA:-200}
+      SQL_LOG_LEVEL: ${SQL_LOG_LEVEL:-info}
+    healthcheck:
+      # Cloudflare Tunnel 打的是同一個端點。這裡也用它，
+      # 確保「compose 說健康」跟「tunnel 說健康」是同一個判斷標準。
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     volumes:
       # 上傳的履歷檔。用 named volume 而不是 bind mount，
       # 這樣 docker compose down && up 之後檔案還在，但也不會弄髒 repo 目錄。

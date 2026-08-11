@@ -96,6 +96,11 @@ public class SecurityConfig {
                         // 公開作品集是整個系統唯一不需要登入的端點。
                         // 集中在 /api/public/** 底下，才不會不小心把別的東西一起開出去。
                         .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
+                        // Cloudflare Tunnel 的健康檢查會打這裡，它不會帶 session cookie。
+                        // 只有 health 這一個 endpoint，而且 show-details: never，
+                        // 所以回應只有 {"status":"UP"}，沒有任何可以拿來偵察的資訊。
+                        .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/**").authenticated()
                         // 其餘（前端靜態資源）先全部放行，P2 會把 SPA build 進 static/
