@@ -4,7 +4,15 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5435/career_toolkit}
     username: ${DB_USER:ct_user}
-    password: ${DB_PASSWORD:devpassword}
+    # 刻意「沒有」預設值。
+    #
+    # 原本是 ${DB_PASSWORD:devpassword}——環境變數沒設到時它會靜默退回一個
+    # 公開在 GitHub 上的密碼。這跟「不要給 API key 預設值」是同一個問題：
+    # 預設值就是密碼被 commit 的方式，而且失敗模式是「用弱密碼啟動成功」，
+    # 比「啟動失敗」危險得多，因為沒有人會發現。
+    #
+    # 本機開發用 .env（.gitignore 已排除），或直接用 docker compose。
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -30,12 +38,27 @@ spring:
       initialize-schema: never
 
 server:
+  # 讓 Spring 認得 Cloudflare 帶進來的 X-Forwarded-Proto / X-Forwarded-Host。
+  #
+  # 少了這一行，經過 tunnel 進來的請求在 Spring 眼中是 http://localhost:8080，
+  # 於是 POST 回應的 Location header 會指向 localhost（客戶端根本連不到），
+  # 而且 request.isSecure() 會是 false（見下面 cookie 的說明）。
+  forward-headers-strategy: framework
+
   servlet:
     session:
       cookie:
         http-only: true       # JavaScript 讀不到 session cookie，降低 XSS 竊取的風險
         same-site: lax        # 擋掉大部分跨站請求，是 CSRF 防護之外的第二層
-        secure: ${COOKIE_SECURE:false}   # P8 上線走 HTTPS 時設成 true
+        #
+        # secure 刻意「不設定」。
+        #
+        # 明寫 true → 本機用 http://localhost:8080 測試時瀏覽器不會存 cookie，登不進去。
+        # 明寫 false → 正式環境少一層保護。
+        #
+        # 不設定的話，servlet 容器會依 request.isSecure() 自動決定：
+        # 搭配上面的 forward-headers-strategy，經 tunnel 進來（X-Forwarded-Proto: https）
+        # 自動帶 Secure，本機 HTTP 自動不帶。兩邊都對，而且不需要額外的 profile。
 
 app:
   storage:
@@ -45,9 +68,26 @@ app:
     # 不存進資料庫的 bytea：每次 pg_dump 都會把所有履歷一起倒出來，
     # 而且一個不小心的 SELECT * 就把整批二進位資料拉進記憶體。
     local-root: ${STORAGE_ROOT:./data/files}
+  selection:
+    # 每人每日的積木選擇次數上限。現在的選擇器零成本，
+    # 但接了會計費的 LLM 之後這個數字就是成本上限。
+    daily-quota: ${SELECTION_DAILY_QUOTA:200}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # 只開 health。其他 endpoint（env、beans、configprops…）會洩漏
+        # 設定內容與內部結構，即使藏在 Cloudflare Access 後面也沒有必要開。
+        include: health
+  endpoint:
+    health:
+      # 不顯示個別元件的細節（資料庫版本、磁碟路徑）。
+      # tunnel 的健康檢查只需要知道 UP 或 DOWN。
+      show-details: never
 
 # logging 必須在 root level。之前它被縮排在 spring: 底下，
 # Spring 完全不會綁定，也不會發出任何警告——設定就這樣靜默失效。
 logging:
   level:
-    org.hibernate.SQL: debug
+    org.hibernate.SQL: ${SQL_LOG_LEVEL:info}

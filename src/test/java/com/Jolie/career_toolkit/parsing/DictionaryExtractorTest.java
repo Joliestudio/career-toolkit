@@ -65,6 +65,24 @@ class DictionaryExtractorTest {
                 .doesNotContain("Java");   // 沒有 Java，不該因為別的字命中
     }
 
+    /**
+     * 句尾的詞要抓得到。
+     *
+     * 這個 bug 是在端到端驗收時才發現的：JD 寫「... and PostgreSQL.」，
+     * 而最初的詞界把句點當成詞的一部分，於是整句話裡的 PostgreSQL 被漏掉。
+     * 單元測試沒抓到，是因為當時的測試字串剛好都沒有句點結尾——
+     * 這正是端到端驗證不能被單元測試取代的理由。
+     */
+    @Test
+    void shouldMatchTermsFollowedByPunctuation() {
+        assertThat(canonicalsIn("Requires Java, Spring Boot and PostgreSQL."))
+                .contains("Java", "Spring Boot", "PostgreSQL");
+
+        assertThat(canonicalsIn("熟悉 Docker、Kubernetes。")).contains("Docker", "Kubernetes");
+        assertThat(canonicalsIn("會用 Redis！")).contains("Redis");
+        assertThat(canonicalsIn("(React)")).contains("React");
+    }
+
     /** 名稱本身含有標點的技能不能被詞界切開。 */
     @Test
     void shouldMatchNamesContainingPunctuation() {
