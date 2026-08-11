@@ -1,0 +1,16 @@
+# build context 越小，docker build 越快。
+# 這些東西送進 build context 除了拖慢速度，還可能把本機的秘密帶進 image。
+target/
+.git/
+.github/
+.idea/
+.vscode/
+*.iml
+.mvn/wrapper/maven-wrapper.jar
+
+# 本機密鑰絕對不能進 image
+.env
+.env.*
+
+# 文件與計畫不影響 build
+*.md
