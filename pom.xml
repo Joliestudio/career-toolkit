@@ -28,6 +28,11 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<!--
+			Tika 不在 spring-boot-dependencies 的 BOM 裡，必須自己釘版本。
+			用 3.3.2（目前的穩定版）而不是 4.0.0-beta-1——正式環境不放 beta。
+		-->
+		<tika.version>3.3.2</tika.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -68,6 +73,25 @@
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
+		</dependency>
+
+		<!--
+			履歷解析。用 Tika 而不是直接用 PDFBox：需求含 DOCX，
+			PDFBox 只吃 PDF，要再加 POI 與類型分派邏輯——那等於重寫一次 Tika。
+			Tika 底層本來就用 PDFBox。
+
+			tika-parsers-standard-package 的依賴樹很大（會讓 image 明顯變大），
+			換來的是不用自己維護「哪種副檔名該用哪個 parser」。
+		-->
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-core</artifactId>
+			<version>${tika.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-parsers-standard-package</artifactId>
+			<version>${tika.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

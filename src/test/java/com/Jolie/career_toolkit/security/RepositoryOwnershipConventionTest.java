@@ -45,7 +45,8 @@ class RepositoryOwnershipConventionTest {
     private static final Set<String> USER_OWNED = Set.of(
             "BlockRepository",
             "JobApplicationRepository",
-            "ResumeVersionRepository"
+            "ResumeVersionRepository",
+            "ResumeFileRepository"
     );
 
     /**
@@ -60,7 +61,8 @@ class RepositoryOwnershipConventionTest {
             "InterviewRepository",                Set.of("UserId", "ApplicationId"),
             "ReviewRepository",                   Set.of("UserId", "ApplicationId", "InterviewId"),
             "OfferRepository",                    Set.of("UserId", "ApplicationId"),
-            "ResumeBlockRepository",              Set.of("UserId", "ResumeVersionId")
+            "ResumeBlockRepository",              Set.of("UserId", "ResumeVersionId"),
+            "ExtractionCandidateRepository",      Set.of("UserId", "ResumeFileId")
     );
 
     /**

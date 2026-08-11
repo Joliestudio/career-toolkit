@@ -1,0 +1,41 @@
+# 證照字典。格式與 skills.txt 相同。
+
+# ---- 雲端 ----
+AWS Certified Solutions Architect | AWS SAA, Solutions Architect Associate, AWS Certified Solutions Architect – Associate
+AWS Certified Developer | AWS Developer Associate
+AWS Certified Cloud Practitioner | AWS CCP
+Google Cloud Professional Cloud Architect | GCP PCA
+Google Cloud Associate Cloud Engineer | GCP ACE
+Microsoft Certified: Azure Fundamentals | AZ-900
+Microsoft Certified: Azure Administrator | AZ-104
+
+# ---- 容器與 DevOps ----
+Certified Kubernetes Administrator | CKA
+Certified Kubernetes Application Developer | CKAD
+
+# ---- 資料庫 ----
+Oracle Certified Professional | OCP
+Oracle Certified Associate | OCA
+MySQL Database Administrator
+
+# ---- 專案管理 ----
+PMP | Project Management Professional
+Certified ScrumMaster | CSM
+PMI-ACP
+
+# ---- 資安 ----
+CISSP
+CEH | Certified Ethical Hacker
+CompTIA Security+ | Security Plus
+
+# ---- 語言檢定（台灣求職常見）----
+TOEIC | 多益
+TOEFL | 托福
+IELTS | 雅思
+JLPT | 日本語能力試驗, 日檢
+
+# ---- 台灣本地 ----
+資訊處理技術士
+網頁設計技術士
+電腦軟體應用技術士
+軟體設計技術士

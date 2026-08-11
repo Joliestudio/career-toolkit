@@ -5,12 +5,14 @@ import { BlocksPage } from './blocks/BlocksPage'
 import { ApplicationsPage } from './applications/ApplicationsPage'
 import { DashboardPage } from './dashboard/DashboardPage'
 import { ResumesPage } from './resumes/ResumesPage'
+import { ResumeFilesPage } from './parsing/ResumeFilesPage'
 
 const TABS = [
   { key: 'dashboard', label: '今天' },
   { key: 'applications', label: '投遞' },
   { key: 'resumes', label: '履歷' },
   { key: 'blocks', label: '積木' },
+  { key: 'upload', label: '匯入' },
 ]
 
 export function App() {
@@ -52,6 +54,7 @@ export function App() {
         {tab === 'applications' && <ApplicationsPage />}
         {tab === 'resumes' && <ResumesPage />}
         {tab === 'blocks' && <BlocksPage />}
+        {tab === 'upload' && <ResumeFilesPage />}
       </main>
     </div>
   )

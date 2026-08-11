@@ -1,0 +1,100 @@
+# 技能字典。格式：正規名稱 | 別名1, 別名2, ...
+#
+# 別名的存在理由：履歷上寫「k8s」跟寫「Kubernetes」是同一件事，
+# 但字面比對抓不到。沒有別名表的話，抽取結果會依使用者的書寫習慣而漂移。
+#
+# 這個檔案是純資料，改它不需要重新編譯，也不需要動任何 Java。
+
+# ---- 語言 ----
+Java | JDK, J2EE, JavaSE, JavaEE
+Kotlin
+JavaScript | JS, ECMAScript, ES6, ES2015
+TypeScript | TS
+Python | py, Python3
+Go | Golang
+C# | CSharp, C-Sharp
+C++ | CPP, Cplusplus
+PHP
+Ruby
+Swift
+Rust
+SQL
+Shell | Bash, Shell Script
+
+# ---- 後端框架 ----
+Spring Boot | SpringBoot, Spring-Boot
+Spring Framework | Spring
+Spring Security
+Spring Data JPA | Spring Data, JPA
+Hibernate
+Node.js | NodeJS, Node
+Express | ExpressJS
+Django
+Flask
+FastAPI
+.NET | dotnet, ASP.NET
+Laravel
+
+# ---- 前端 ----
+React | ReactJS, React.js
+Vue | VueJS, Vue.js
+Angular | AngularJS
+Next.js | NextJS
+Svelte
+Tailwind CSS | Tailwind
+HTML | HTML5
+CSS | CSS3, SCSS, Sass
+Vite
+Webpack
+
+# ---- 資料庫 ----
+PostgreSQL | Postgres, PSQL
+MySQL
+MariaDB
+Oracle Database | Oracle DB
+SQL Server | MSSQL
+MongoDB | Mongo
+Redis
+Elasticsearch | ES, ElasticSearch
+SQLite
+
+# ---- 基礎建設 ----
+Docker
+Kubernetes | k8s, K8S
+Docker Compose | docker-compose
+Linux | Ubuntu, CentOS, Debian
+Nginx
+Apache
+Terraform
+Ansible
+Jenkins
+GitHub Actions | GitHub Action
+GitLab CI | GitLab CI/CD
+CI/CD | CICD
+
+# ---- 雲端 ----
+AWS | Amazon Web Services
+Google Cloud | GCP, Google Cloud Platform
+Azure | Microsoft Azure
+Cloudflare
+Firebase
+
+# ---- 工具與方法 ----
+Git
+Maven
+Gradle
+JUnit
+Testcontainers
+Jest
+Cypress
+Selenium
+Kafka | Apache Kafka
+RabbitMQ
+gRPC
+GraphQL
+REST API | RESTful, REST
+Microservices | 微服務
+Agile | Scrum, 敏捷開發
+TDD | Test-Driven Development
+Figma
+Jira

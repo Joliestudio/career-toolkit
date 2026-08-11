@@ -61,6 +61,32 @@ async function request(path, { method = 'GET', body } = {}) {
   return payload
 }
 
+/**
+ * multipart 上傳。
+ *
+ * 跟 request() 分開的唯一理由：**不能自己設 Content-Type**。
+ * FormData 需要瀏覽器自動加上帶 boundary 的 multipart/form-data，
+ * 手動設成 'multipart/form-data' 會少掉 boundary，伺服器直接解析失敗。
+ */
+async function uploadRequest(path, formData) {
+  const headers = {}
+  const token = readCookie('XSRF-TOKEN')
+  if (token) headers['X-XSRF-TOKEN'] = token
+
+  const response = await fetch('/api' + path, {
+    method: 'POST',
+    headers,
+    credentials: 'same-origin',
+    body: formData,
+  })
+
+  const text = await response.text()
+  const payload = text ? JSON.parse(text) : null
+
+  if (!response.ok) throw new ApiError(response.status, payload)
+  return payload
+}
+
 export const api = {
   // ---- 認證 ----
   me: () => request('/auth/me'),
@@ -126,6 +152,21 @@ export const api = {
 
   /** 匯出走瀏覽器下載，不經過 fetch —— 讓瀏覽器自己處理 Content-Disposition */
   resumeMarkdownUrl: (id) => `/api/resumes/${id}/export.md`,
+
+  // ---- 履歷上傳與解析 ----
+  listResumeFiles: () => request('/resume-files'),
+  resumeFileCandidates: (id) => request(`/resume-files/${id}/candidates`),
+  acceptCandidate: (candidateId) =>
+    request(`/resume-files/candidates/${candidateId}/accept`, { method: 'POST' }),
+  rejectCandidate: (candidateId) =>
+    request(`/resume-files/candidates/${candidateId}/reject`, { method: 'POST' }),
+
+  /** 上傳走 multipart，不能用 JSON 那條路徑（不要自己設 Content-Type，讓瀏覽器帶 boundary）。 */
+  uploadResumeFile: (file) => {
+    const form = new FormData()
+    form.append('file', file)
+    return uploadRequest('/resume-files', form)
+  },
 
   // ---- Offer ----
   listOffers: () => request('/offers'),

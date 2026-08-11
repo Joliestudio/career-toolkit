@@ -3,6 +3,7 @@ package com.Jolie.career_toolkit.common;
 import com.Jolie.career_toolkit.application.IllegalStatusTransitionException;
 import com.Jolie.career_toolkit.auth.EmailAlreadyRegisteredException;
 import com.Jolie.career_toolkit.block.BlockNotFoundException;
+import com.Jolie.career_toolkit.parsing.UnsupportedFileTypeException;
 import com.Jolie.career_toolkit.resume.ResumeVersionLockedException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.net.URI;
 import java.time.Instant;
@@ -105,6 +107,40 @@ public class GlobalExceptionHandler {
         problem.setTitle("Resume version locked");
         decorate(problem, request);
 
+        return problem;
+    }
+
+    /**
+     * 上傳了不支援的檔案類型。
+     *
+     * 訊息裡刻意帶出「偵測到的」類型：使用者把 .exe 改名成 .pdf 的話，
+     * 只說「格式不對」會讓他一直重試同一個檔案。說出偵測結果他才知道發生什麼事。
+     */
+    @ExceptionHandler(UnsupportedFileTypeException.class)
+    public ProblemDetail handleUnsupportedFileType(UnsupportedFileTypeException ex,
+                                                   HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                "只接受 PDF、Word、純文字或 RTF。這個檔案實際的格式是 " + ex.getDetected());
+        problem.setType(URI.create(BASE_TYPE + "unsupported-file-type"));
+        problem.setTitle("Unsupported file type");
+        problem.setProperty("detected", ex.getDetected());
+        decorate(problem, request);
+
+        return problem;
+    }
+
+    /** 檔案太大。413 是專門給這件事的狀態碼。 */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ProblemDetail handleUploadTooLarge(MaxUploadSizeExceededException ex,
+                                              HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.PAYLOAD_TOO_LARGE, "檔案太大，上限是 10MB");
+        problem.setType(URI.create(BASE_TYPE + "file-too-large"));
+        problem.setTitle("File too large");
+        decorate(problem, request);
+
+        log.debug("Upload rejected: {}", ex.getMessage());
         return problem;
     }
 

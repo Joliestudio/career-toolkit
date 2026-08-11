@@ -35,6 +35,14 @@ WORKDIR /app
 # 容器裡預設是 root。應用一旦被入侵，攻擊者在容器內就是 root。
 RUN addgroup -S app && adduser -S app -G app
 
+# 上傳檔案的存放目錄，在 compose 裡會掛一個 named volume 上來。
+#
+# 這裡先建好目錄並設好擁有者是必要的：Docker 在「第一次」建立 named volume 時，
+# 會沿用 image 裡該路徑的內容與擁有權。少了這一步，volume 會是 root 所有，
+# 而應用是以非 root 的 app 執行 —— 第一次上傳就會 Permission denied，
+# 而且錯誤訊息完全看不出跟 volume 有關。
+RUN mkdir -p /var/lib/career-toolkit/files && chown -R app:app /var/lib/career-toolkit
+
 # multi-stage 的重點：build 階段需要完整 Maven + JDK（500MB+），執行只需要 JRE。
 # 分階段後最終 image 不含原始碼與 build 工具——體積和安全兩個考量同時成立。
 COPY --from=build /app/target/*.jar app.jar

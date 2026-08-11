@@ -37,6 +37,11 @@ services:
       DB_URL: jdbc:postgresql://db:5432/career_toolkit
       DB_USER: ct_user
       DB_PASSWORD: devpassword
+      STORAGE_ROOT: /var/lib/career-toolkit/files
+    volumes:
+      # 上傳的履歷檔。用 named volume 而不是 bind mount，
+      # 這樣 docker compose down && up 之後檔案還在，但也不會弄髒 repo 目錄。
+      - ct-files:/var/lib/career-toolkit/files
     depends_on:
       db:
         # 只寫 depends_on: [db] 不夠——那只保證容器「啟動」，
@@ -45,3 +50,4 @@ services:
 
 volumes:
   ct-pgdata:
+  ct-files:
