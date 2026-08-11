@@ -5,6 +5,7 @@ import com.Jolie.career_toolkit.auth.EmailAlreadyRegisteredException;
 import com.Jolie.career_toolkit.block.BlockNotFoundException;
 import com.Jolie.career_toolkit.parsing.UnsupportedFileTypeException;
 import com.Jolie.career_toolkit.resume.ResumeVersionLockedException;
+import com.Jolie.career_toolkit.selection.QuotaExceededException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,6 +142,20 @@ public class GlobalExceptionHandler {
         decorate(problem, request);
 
         log.debug("Upload rejected: {}", ex.getMessage());
+        return problem;
+    }
+
+    /** 超過每日配額。429 是專門給這件事的狀態碼。 */
+    @ExceptionHandler(QuotaExceededException.class)
+    public ProblemDetail handleQuotaExceeded(QuotaExceededException ex, HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.TOO_MANY_REQUESTS,
+                "今天的積木選擇次數已達上限（" + ex.getLimit() + " 次），明天再試。");
+        problem.setType(URI.create(BASE_TYPE + "quota-exceeded"));
+        problem.setTitle("Quota exceeded");
+        problem.setProperty("limit", ex.getLimit());
+        decorate(problem, request);
+
         return problem;
     }
 

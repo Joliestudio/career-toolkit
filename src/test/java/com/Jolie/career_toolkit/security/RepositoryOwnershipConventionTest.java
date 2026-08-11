@@ -48,7 +48,8 @@ class RepositoryOwnershipConventionTest {
             "ResumeVersionRepository",
             "ResumeFileRepository",
             "ProjectRepository",
-            "AnswerPresetRepository"
+            "AnswerPresetRepository",
+            "SelectionCallRepository"
     );
 
     /**

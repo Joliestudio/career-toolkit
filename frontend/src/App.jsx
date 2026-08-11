@@ -8,10 +8,12 @@ import { ResumesPage } from './resumes/ResumesPage'
 import { ResumeFilesPage } from './parsing/ResumeFilesPage'
 import { PresetsPage } from './answers/PresetsPage'
 import { ProjectsPage } from './portfolio/ProjectsPage'
+import { SelectionPage } from './selection/SelectionPage'
 
 const TABS = [
   { key: 'dashboard', label: '今天' },
   { key: 'applications', label: '投遞' },
+  { key: 'match', label: '配對 JD' },
   { key: 'resumes', label: '履歷' },
   { key: 'presets', label: '題組' },
   { key: 'projects', label: '作品集' },
@@ -57,6 +59,7 @@ export function App() {
         {tab === 'dashboard' && <DashboardPage onOpenApplications={() => setTab('applications')} />}
         {tab === 'applications' && <ApplicationsPage />}
         {tab === 'resumes' && <ResumesPage />}
+        {tab === 'match' && <SelectionPage />}
         {tab === 'presets' && <PresetsPage />}
         {tab === 'projects' && <ProjectsPage />}
         {tab === 'blocks' && <BlocksPage />}

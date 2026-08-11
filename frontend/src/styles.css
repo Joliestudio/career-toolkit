@@ -359,6 +359,13 @@ body {
 
 .nav { flex-wrap: wrap; }
 
+/* ---------- JD 配對 ---------- */
+
+.reasons {
+  margin-top: .5rem; display: flex; align-items: center; gap: .3rem;
+  flex-wrap: wrap; font-size: .8rem; color: var(--muted);
+}
+
 /* ---------- 列印 ---------- */
 
 @media print {
