@@ -44,7 +44,8 @@ class RepositoryOwnershipConventionTest {
     /** 使用者直屬的資料：所有權條件必須寫進方法名。 */
     private static final Set<String> USER_OWNED = Set.of(
             "BlockRepository",
-            "JobApplicationRepository"
+            "JobApplicationRepository",
+            "ResumeVersionRepository"
     );
 
     /**
@@ -58,7 +59,8 @@ class RepositoryOwnershipConventionTest {
             "ApplicationStatusHistoryRepository", Set.of("UserId", "ApplicationId"),
             "InterviewRepository",                Set.of("UserId", "ApplicationId"),
             "ReviewRepository",                   Set.of("UserId", "ApplicationId", "InterviewId"),
-            "OfferRepository",                    Set.of("UserId", "ApplicationId")
+            "OfferRepository",                    Set.of("UserId", "ApplicationId"),
+            "ResumeBlockRepository",              Set.of("UserId", "ResumeVersionId")
     );
 
     /**

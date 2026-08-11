@@ -3,6 +3,7 @@ package com.Jolie.career_toolkit.application;
 import com.Jolie.career_toolkit.application.dto.CreateApplicationRequest;
 import com.Jolie.career_toolkit.application.dto.UpdateApplicationRequest;
 import com.Jolie.career_toolkit.common.ResourceNotFoundException;
+import com.Jolie.career_toolkit.resume.ResumeVersionRepository;
 import com.Jolie.career_toolkit.user.CurrentUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,13 +17,16 @@ public class JobApplicationService {
 
     private final JobApplicationRepository applicationRepository;
     private final ApplicationStatusHistoryRepository historyRepository;
+    private final ResumeVersionRepository resumeVersionRepository;
     private final CurrentUser currentUser;
 
     public JobApplicationService(JobApplicationRepository applicationRepository,
                                  ApplicationStatusHistoryRepository historyRepository,
+                                 ResumeVersionRepository resumeVersionRepository,
                                  CurrentUser currentUser) {
         this.applicationRepository = applicationRepository;
         this.historyRepository = historyRepository;
+        this.resumeVersionRepository = resumeVersionRepository;
         this.currentUser = currentUser;
     }
 
@@ -81,6 +85,18 @@ public class JobApplicationService {
         if (request.appliedAt() != null) application.setAppliedAt(request.appliedAt());
         if (request.nextActionAt() != null) application.setNextActionAt(request.nextActionAt());
         if (request.notes() != null) application.setNotes(request.notes());
+
+        if (request.resumeVersionId() != null) {
+            // 先確認那份履歷是自己的，查不到就 404。
+            // 資料庫的複合外鍵 (user_id, resume_version_id) 是第二道防線——
+            // 就算這裡的檢查被誰刪掉，也不可能掛到別人的履歷版本。
+            resumeVersionRepository
+                    .findByIdAndUserIdAndDeletedAtIsNull(request.resumeVersionId(), currentUser.id())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "ResumeVersion", request.resumeVersionId()));
+
+            application.setResumeVersionId(request.resumeVersionId());
+        }
 
         return application;
     }

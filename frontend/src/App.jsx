@@ -4,10 +4,12 @@ import { LoginPage } from './pages/LoginPage'
 import { BlocksPage } from './blocks/BlocksPage'
 import { ApplicationsPage } from './applications/ApplicationsPage'
 import { DashboardPage } from './dashboard/DashboardPage'
+import { ResumesPage } from './resumes/ResumesPage'
 
 const TABS = [
   { key: 'dashboard', label: '今天' },
   { key: 'applications', label: '投遞' },
+  { key: 'resumes', label: '履歷' },
   { key: 'blocks', label: '積木' },
 ]
 
@@ -48,6 +50,7 @@ export function App() {
       <main className="main">
         {tab === 'dashboard' && <DashboardPage onOpenApplications={() => setTab('applications')} />}
         {tab === 'applications' && <ApplicationsPage />}
+        {tab === 'resumes' && <ResumesPage />}
         {tab === 'blocks' && <BlocksPage />}
       </main>
     </div>

@@ -277,6 +277,67 @@ body {
 .offer-facts dd { margin: 0; font-variant-numeric: tabular-nums; }
 .offer-facts .strong { font-weight: 600; font-size: 1.05rem; }
 
+/* ---------- 履歷組裝 ---------- */
+
+.toolbar-hint { margin: 0; font-size: .85rem; max-width: 32rem; }
+.lock-note {
+  border-left: 3px solid var(--border); padding-left: .7rem;
+  margin: .5rem 0 0; font-size: .87rem;
+}
+
+.resume-entries { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; counter-reset: entry; }
+.resume-entry { border: 1px solid var(--border); border-radius: 8px; padding: .7rem .8rem; }
+.resume-entry-draggable { cursor: grab; }
+.resume-entry-draggable:active { cursor: grabbing; }
+.resume-entry-head { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.resume-entry-head strong { flex: 1; min-width: 8rem; }
+.resume-entry-head .btn { padding: .2rem .55rem; font-size: .8rem; }
+.drag-handle { color: var(--muted); cursor: grab; user-select: none; }
+.resume-count { font-size: .8rem; white-space: nowrap; }
+.resume-entry-content {
+  margin: .5rem 0 0; color: var(--muted); font-size: .87rem;
+  white-space: pre-wrap; word-break: break-word;
+}
+
+.override { margin-top: .7rem; padding-top: .7rem; border-top: 1px dashed var(--border); }
+.override p { margin: 0 0 .5rem; font-size: .82rem; }
+.override textarea {
+  width: 100%; padding: .5rem .7rem; font: inherit; font-size: .88rem;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px; resize: vertical;
+}
+
+.library { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; }
+.library-item {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .45rem .6rem; border: 1px solid var(--border); border-radius: 8px;
+  font-size: .88rem;
+}
+.library-title { flex: 1; min-width: 0; }
+.library-item .btn { padding: .2rem .55rem; font-size: .8rem; }
+
+/* ---------- 列印 ---------- */
+
+@media print {
+  /* 列印時只留履歷內容：導覽、按鈕、積木庫都不該出現在紙上 */
+  .topbar, .toolbar, .app-list, .library, .editor-actions,
+  .detail-head .btn, .section-title .btn, .section-title a,
+  .lock-note, .override, .drag-handle, .alert { display: none !important; }
+
+  body { background: #fff; color: #000; }
+  .main { max-width: none; padding: 0; }
+  .card, .resume-entry { border: none; padding: 0; background: #fff; }
+  .detail-section { margin-top: 1rem; }
+  .resume-entries { gap: 1rem; }
+  .resume-entry-content { color: #000; font-size: 10.5pt; }
+  .tag, .badge { border: 1px solid #999; color: #000; background: none; }
+  .resume-count { display: none; }
+
+  /* 一段內容不要被切到兩頁 */
+  .resume-entry { break-inside: avoid; page-break-inside: avoid; }
+  @page { margin: 1.6cm; }
+}
+
 /* ---------- 首頁 ---------- */
 
 .dash-section { margin-bottom: 2rem; }

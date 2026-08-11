@@ -198,6 +198,50 @@ class JobApplicationControllerTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.positionTitle").value("後端工程師"));
     }
 
+    // ---------- 與履歷版本的關聯 ----------
+
+    @Test
+    void canLinkOwnResumeVersion() throws Exception {
+        String applicationId = createApplication("後端工程師");
+        String versionId = createResumeVersion(me, "投這家用的版本");
+
+        mockMvc.perform(patch("/api/applications/{id}", applicationId).with(user(me)).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"resumeVersionId":"%s"}
+                                """.formatted(versionId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resumeVersionId").value(versionId));
+    }
+
+    /**
+     * 掛別人的履歷版本要被擋下來。
+     *
+     * 這裡有兩道防線：Service 先查「這份履歷是不是你的」（回 404），
+     * 資料庫還有一個複合外鍵 (user_id, resume_version_id)。
+     * 就算 Service 那道被誰刪掉，資料庫仍然擋得住——
+     * 單純的 REFERENCES resume_versions(id) 做不到這件事，
+     * 那只保證「那個版本存在」，不保證「是你的」。
+     */
+    @Test
+    void cannotLinkAnotherUsersResumeVersion() throws Exception {
+        String applicationId = createApplication("後端工程師");
+        AppUserDetails other = createUser(uniqueEmail("other"));
+        String theirVersion = createResumeVersion(other, "別人的履歷");
+
+        mockMvc.perform(patch("/api/applications/{id}", applicationId).with(user(me)).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"resumeVersionId":"%s"}
+                                """.formatted(theirVersion)))
+                .andExpect(status().isNotFound());
+
+        entityManager.flush();
+        entityManager.clear();
+        assertThat(applicationRepository.findById(UUID.fromString(applicationId)).orElseThrow()
+                .getResumeVersionId()).isNull();
+    }
+
     // ---------- 跨帳號隔離 ----------
 
     @Test
@@ -307,6 +351,18 @@ class JobApplicationControllerTest extends IntegrationTestBase {
                 .andReturn().getResponse().getContentAsString();
 
         return body.replaceAll(".*\"id\"\\s*:\\s*\"([0-9a-f-]{36})\".*", "$1");
+    }
+
+    private String createResumeVersion(AppUserDetails owner, String label) throws Exception {
+        String body = mockMvc.perform(post("/api/resumes").with(user(owner)).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"label":"%s"}
+                                """.formatted(label)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        return body.replaceAll(".*?\"id\"\\s*:\\s*\"([0-9a-f-]{36})\".*", "$1");
     }
 
     private org.springframework.test.web.servlet.ResultActions changeStatus(String id, String status)

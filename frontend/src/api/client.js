@@ -105,6 +105,28 @@ export const api = {
     request(`/interviews/${interviewId}/review`, { method: 'PUT', body: review }),
   reviewsForApplication: (applicationId) => request(`/applications/${applicationId}/reviews`),
 
+  // ---- 履歷版本 ----
+  listResumes: () => request('/resumes'),
+  getResume: (id) => request(`/resumes/${id}`),
+  createResume: (resume) => request('/resumes', { method: 'POST', body: resume }),
+  updateResume: (id, patch) => request(`/resumes/${id}`, { method: 'PATCH', body: patch }),
+  deleteResume: (id) => request(`/resumes/${id}`, { method: 'DELETE' }),
+  lockResume: (id) => request(`/resumes/${id}/lock`, { method: 'POST' }),
+  cloneResume: (id, label) => request(`/resumes/${id}/clone`, { method: 'POST', body: { label } }),
+
+  resumeBlocks: (id) => request(`/resumes/${id}/blocks`),
+  addResumeBlock: (id, blockId, section) =>
+    request(`/resumes/${id}/blocks`, { method: 'POST', body: { blockId, section } }),
+  removeResumeBlock: (id, blockId) =>
+    request(`/resumes/${id}/blocks/${blockId}`, { method: 'DELETE' }),
+  reorderResumeBlocks: (id, blockIds) =>
+    request(`/resumes/${id}/order`, { method: 'PUT', body: { blockIds } }),
+  setResumeBlockOverride: (id, blockId, content) =>
+    request(`/resumes/${id}/blocks/${blockId}/override`, { method: 'PUT', body: { content } }),
+
+  /** 匯出走瀏覽器下載，不經過 fetch —— 讓瀏覽器自己處理 Content-Disposition */
+  resumeMarkdownUrl: (id) => `/api/resumes/${id}/export.md`,
+
   // ---- Offer ----
   listOffers: () => request('/offers'),
   getOffer: (applicationId) => request(`/applications/${applicationId}/offer`),
