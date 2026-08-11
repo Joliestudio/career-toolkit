@@ -191,6 +191,10 @@ export const api = {
     request(`/presets/${id}/order`, { method: 'PUT', body: { blockIds } }),
   assembledAnswer: (id) => request(`/presets/${id}/assembled`),
 
+  // ---- 積木選擇（貼 JD → 挑積木）----
+  selectBlocksForJd: (jobDescription) =>
+    request('/selection', { method: 'POST', body: { jobDescription } }),
+
   // ---- Offer ----
   listOffers: () => request('/offers'),
   getOffer: (applicationId) => request(`/applications/${applicationId}/offer`),
