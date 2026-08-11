@@ -26,6 +26,18 @@ spring:
   autoconfigure:
     exclude: org.springframework.boot.session.jdbc.autoconfigure.JdbcSessionAutoConfiguration
 
+app:
+  storage:
+    # 測試的檔案存進 build 目錄，mvn clean 會一起清掉。
+    #
+    # 一定要設。LocalFileStorage 的建構子預設值是 /var/lib/career-toolkit/files——
+    # 那是給容器用的路徑。在 Windows 上它會解析成 C:\var\... 而且建得起來，
+    # 所以本機測試全綠；但在 Linux 的 CI runner 上建立 /var/lib/... 需要 root，
+    # 建構子直接拋例外，整個 Spring context 起不來。
+    #
+    # 這是「平台相依的預設值」——本機看不出來，只有 CI 抓得到。
+    local-root: ${java.io.tmpdir}/career-toolkit-test-files
+
 logging:
   level:
     org.hibernate.SQL: info
