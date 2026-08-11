@@ -181,3 +181,107 @@ body {
 .counter-bar { height: 4px; background: var(--border); border-radius: 999px; overflow: hidden; }
 .counter-fill { height: 100%; background: var(--accent); transition: width .15s ease; }
 .counter-fill-over { background: var(--danger); }
+
+/* ---------- 導覽 ---------- */
+
+.nav { display: flex; gap: .25rem; }
+.nav-tab {
+  padding: .35rem .8rem; font: inherit; cursor: pointer;
+  background: transparent; border: 1px solid transparent;
+  color: var(--muted); border-radius: 8px;
+}
+.nav-tab:hover { color: var(--text); }
+.nav-tab-active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+
+.main { max-width: 900px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 .8rem; }
+@media (max-width: 620px) { .grid-2 { grid-template-columns: 1fr; } }
+
+/* ---------- 狀態徽章 ---------- */
+
+.badge-neutral { background: var(--border); color: var(--muted); }
+.badge-info    { background: var(--accent-soft); color: var(--accent); }
+.badge-active  { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--accent); }
+.badge-good    { background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--accent); }
+.badge-warn    { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
+.badge-bad     { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
+
+/* ---------- 投遞列表 ---------- */
+
+.app-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.app-row {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .7rem .9rem; cursor: pointer;
+}
+.app-row:hover { border-color: var(--accent); }
+.app-row-open { border-color: var(--accent); }
+.app-main { flex: 1; min-width: 0; }
+.app-date { font-size: .82rem; white-space: nowrap; }
+
+/* ---------- 投遞詳情 ---------- */
+
+.detail { margin-bottom: 1rem; }
+.detail-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.detail-title { margin: 0; font-size: 1.15rem; }
+.detail-sub { margin: .2rem 0 0; display: flex; align-items: center; gap: .5rem; }
+
+.detail-section { margin-top: 1.5rem; }
+.detail-section:first-of-type { margin-top: 1rem; }
+.section-title {
+  display: flex; align-items: center; gap: .6rem;
+  margin: 0 0 .7rem; font-size: .95rem; font-weight: 600;
+}
+.section-title .btn { margin-left: auto; padding: .25rem .6rem; font-size: .82rem; }
+
+.chips { display: flex; gap: .35rem; flex-wrap: wrap; }
+.status-note {
+  width: 100%; padding: .45rem .7rem; margin-bottom: .5rem; font: inherit; font-size: .88rem;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+
+/* ---------- 歷程 ---------- */
+
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+.timeline li {
+  display: flex; gap: .7rem; align-items: baseline;
+  font-size: .87rem; padding-left: .8rem;
+  border-left: 2px solid var(--border);
+}
+.timeline-when { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.timeline-what { font-weight: 500; }
+.timeline-note { color: var(--muted); }
+
+/* ---------- 面試 ---------- */
+
+.interview-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.interview { border: 1px solid var(--border); border-radius: 8px; padding: .6rem .7rem; }
+.interview-row { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
+.interview-row select, .interview-row input {
+  padding: .3rem .5rem; font: inherit; font-size: .85rem;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 6px;
+}
+.round { font-weight: 600; font-size: .88rem; white-space: nowrap; }
+.interview-row .btn { margin-left: auto; padding: .25rem .6rem; font-size: .82rem; }
+
+.review { margin-top: .8rem; padding-top: .8rem; border-top: 1px dashed var(--border); }
+.review input[type="range"] { padding: 0; }
+
+/* ---------- Offer ---------- */
+
+.offer-summary { border: 1px solid var(--border); border-radius: 8px; padding: .8rem; }
+.offer-facts { display: flex; gap: 1.5rem; margin: 0 0 .6rem; flex-wrap: wrap; }
+.offer-facts div { margin: 0; }
+.offer-facts dt { color: var(--muted); font-size: .78rem; }
+.offer-facts dd { margin: 0; font-variant-numeric: tabular-nums; }
+.offer-facts .strong { font-weight: 600; font-size: 1.05rem; }
+
+/* ---------- 首頁 ---------- */
+
+.dash-section { margin-bottom: 2rem; }
+.dash-section .section-title { font-size: 1.05rem; }
+.dash-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.dash-item { display: flex; align-items: center; gap: .8rem; padding: .7rem .9rem; }
+.dash-main { flex: 1; min-width: 0; font-size: .9rem; }
+.dash-item .btn { white-space: nowrap; }

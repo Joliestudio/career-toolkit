@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api/client'
-import { useAuth } from '../auth/AuthContext'
 import { BLOCK_TYPES, labelOf } from './blockTypes'
 import { BlockEditor } from './BlockEditor'
 import { countChars } from '../components/CharCounter'
 
 export function BlocksPage() {
-  const { user, logout } = useAuth()
   const [blocks, setBlocks] = useState([])
   const [filter, setFilter] = useState('')
   const [editing, setEditing] = useState(undefined) // undefined = 關閉，null = 新增，物件 = 編輯
@@ -50,20 +48,8 @@ export function BlocksPage() {
   }
 
   return (
-    <div className="app">
-      <header className="topbar">
-        <div className="brand">Career Toolkit</div>
-        <div className="topbar-right">
-          <span className="whoami">{user.email}</span>
-          {user.role === 'ADMIN' && <span className="badge">管理員</span>}
-          <button className="btn btn-ghost" onClick={logout}>
-            登出
-          </button>
-        </div>
-      </header>
-
-      <main className="main">
-        <div className="toolbar">
+    <>
+      <div className="toolbar">
           <div className="filters">
             <button
               className={'chip' + (filter === '' ? ' chip-active' : '')}
@@ -133,7 +119,6 @@ export function BlocksPage() {
             ))}
           </ul>
         )}
-      </main>
-    </div>
+    </>
   )
 }

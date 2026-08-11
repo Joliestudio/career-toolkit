@@ -7,9 +7,16 @@ services:
       POSTGRES_PASSWORD: devpassword
       POSTGRES_DB: career_toolkit
     ports:
-      # 對外仍然開 5435，本機的 psql / DBeaver 還是連得到。
+      # 綁在 127.0.0.1，不是預設的 0.0.0.0。
+      #
+      # 只寫 "5435:5432" 的話 Docker 會綁到所有網路介面，同一個網段的人
+      # （咖啡廳 wifi、公司內網）都連得到這個資料庫。密碼又是寫死在這個檔案裡、
+      # 而且會公開在 GitHub 上的 devpassword——兩件事加起來就從「無所謂」
+      # 變成「有人真的連得進來」。
+      #
+      # 本機的 psql / DBeaver 一樣連得到，因為它們也是從 127.0.0.1 連。
       # 用 5435 是因為這台機器的 5432 被本機安裝的 PostgreSQL 佔用了。
-      - "5435:5432"
+      - "127.0.0.1:5435:5432"
     volumes:
       - ct-pgdata:/var/lib/postgresql/data
     healthcheck:
