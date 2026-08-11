@@ -8,6 +8,13 @@ target/
 *.iml
 .mvn/wrapper/maven-wrapper.jar
 
+# 前端：node_modules 動輒上萬個檔案，送進 build context 會拖慢每一次 build。
+# frontend 階段自己會跑 npm ci。
+frontend/node_modules/
+frontend/dist/
+# 本機 build 出來的靜態檔也不要帶進去，frontend 階段會重新產生
+src/main/resources/static/
+
 # 本機密鑰絕對不能進 image
 .env
 .env.*

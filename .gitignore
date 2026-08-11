@@ -32,6 +32,12 @@ build/
 ### VS Code ###
 .vscode/
 
+### 前端 ###
+frontend/node_modules/
+frontend/dist/
+# vite build 的產出物。原始碼在 frontend/，這裡是編譯結果，不進版控。
+src/main/resources/static/
+
 ### 本機密鑰 ###
 # P7 的 LLM API key 走環境變數，application.yml 裡不給預設值。
 # CI 有 gitleaks 把關，但第一道防線還是不要讓這些檔案進版控。
