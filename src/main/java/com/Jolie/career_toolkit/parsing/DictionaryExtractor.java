@@ -95,9 +95,18 @@ public class DictionaryExtractor {
             return haystack.contains(needle);
         }
 
-        // (?<![\w#+.]) / (?![\w#+.]) 而不是 \b：
-        // C#、C++、.NET、Node.js 這些名稱本身就含有 \b 會切開的字元
-        String pattern = "(?<![\\w#+.])" + Pattern.quote(needle) + "(?![\\w#+.])";
+        // 用自訂的詞界而不是 \b：C#、C++、.NET、Node.js 這些名稱本身就含有
+        // \b 會切開的字元。
+        //
+        // 但句點要特別處理。最初的寫法是把 . 直接放進排除清單：
+        //     (?<![\w#+.]) needle (?![\w#+.])
+        // 那樣「PostgreSQL.」（句尾）就match不到了——後面跟著的句點被當成詞的一部分。
+        // 這個 bug 是在端到端驗收時才發現的：單元測試的字串剛好都沒有句點結尾。
+        //
+        // 正確的規則是：句點只有在「後面還接著字元」時才算詞的一部分。
+        //     (?!\.\w)  → "node.js" 找 "node" 不match（.j 是詞的延續）
+        //                 "PostgreSQL." 找 "postgresql" 會match（. 後面沒有字元）
+        String pattern = "(?<![\\w#+])" + Pattern.quote(needle) + "(?![\\w#+])(?!\\.\\w)";
         return Pattern.compile(pattern).matcher(haystack).find();
     }
 
