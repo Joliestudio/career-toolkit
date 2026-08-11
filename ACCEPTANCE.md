@@ -12,7 +12,7 @@ docker compose stop db
 ./mvnw.cmd clean verify
 ```
 
-**應該看到**：`Tests run: 164, Failures: 0, Errors: 0` 且 `BUILD SUCCESS`。
+**應該看到**：`Tests run: 165, Failures: 0, Errors: 0` 且 `BUILD SUCCESS`。
 
 本機資料庫是關掉的 —— 測試用 Testcontainers 自己起一個 PostgreSQL。
 這條同時證明了 CI 會過：GitHub runner 上沒有 `localhost:5435`。
@@ -125,11 +125,31 @@ curl -s -o /dev/null -w '%{http_code}\n' https://career-toolkit.cjinsightflow.co
 docker compose up -d
 ```
 
-> ⚠️ **目前這一條還沒通過。** 網域回 502，因為 Cloudflare Zero Trust 裡
-> `jolie-tunnel` 還沒有 `career-toolkit.cjinsightflow.com` → `localhost:8080` 的
-> public hostname 路由。tunnel 本身是好的（同一條上的 `jolie.cjinsightflow.com` 正常），
-> 本機 8080 也在回應。**加那條路由必須在你的 Cloudflare 儀表板做**，
-> 步驟見 [DEPLOY.md](DEPLOY.md) 第 1 節。
+### 實測結果（走外網，不是本機）
+
+```
+首頁                          200
+未登入 /api/blocks            401
+/actuator/health              {"status":"UP"}
+深連結 /resumes/abc           200   ← SPA fallback，不是 404
+註冊                          201
+登入 Set-Cookie               SESSION=...; Path=/; Secure; HttpOnly; SameSite=Lax
+建積木                        201
+POST 的 Location header       https://career-toolkit.cjinsightflow.com/api/blocks/...
+```
+
+最後兩行是這一階段真正要證明的東西，而且**只有走外網才驗得出來**：
+
+- **`Secure` 是自動加上的。** `application.yml` 裡刻意沒有明寫
+  `server.servlet.session.cookie.secure`，由容器依 `request.isSecure()` 決定。
+  本機用 HTTP 測試時它不會出現 —— 所以本機測試永遠證明不了這一條。
+- **`Location` 是正式網址不是 `localhost:8082`。** 沒有
+  `forward-headers-strategy: framework` 的話，Spring 眼中的請求是
+  `http://localhost:8082`，回給客戶端的 `Location` 會指向一個外面連不到的位址。
+
+> 路由設定曾經踩過兩個坑，記在 [DEPLOY.md](DEPLOY.md) 第 1 節：
+> Service URL 少打冒號（`localhost8082`）會被當成主機名解析 → 502；
+> 以及不能用 8080 / 8081，那兩個 port 這台機器上已經有人。
 
 ---
 
