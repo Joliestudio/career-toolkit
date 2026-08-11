@@ -168,6 +168,29 @@ export const api = {
     return uploadRequest('/resume-files', form)
   },
 
+  // ---- 作品集 ----
+  listProjects: () => request('/projects'),
+  createProject: (project) => request('/projects', { method: 'POST', body: project }),
+  updateProject: (id, patch) => request(`/projects/${id}`, { method: 'PATCH', body: patch }),
+  deleteProject: (id) => request(`/projects/${id}`, { method: 'DELETE' }),
+  /** 公開頁不需要登入 —— 這是整個系統唯一這樣的端點 */
+  publicPortfolioUrl: (userId) => `/api/public/portfolio/${userId}`,
+
+  // ---- 題型與題組 ----
+  listQuestionTypes: () => request('/question-types'),
+  questionsAsked: () => request('/question-types/asked'),
+  listPresets: () => request('/presets'),
+  createPreset: (preset) => request('/presets', { method: 'POST', body: preset }),
+  updatePreset: (id, patch) => request(`/presets/${id}`, { method: 'PATCH', body: patch }),
+  deletePreset: (id) => request(`/presets/${id}`, { method: 'DELETE' }),
+  addPresetBlock: (id, blockId) =>
+    request(`/presets/${id}/blocks`, { method: 'POST', body: { blockId } }),
+  removePresetBlock: (id, blockId) =>
+    request(`/presets/${id}/blocks/${blockId}`, { method: 'DELETE' }),
+  reorderPresetBlocks: (id, blockIds) =>
+    request(`/presets/${id}/order`, { method: 'PUT', body: { blockIds } }),
+  assembledAnswer: (id) => request(`/presets/${id}/assembled`),
+
   // ---- Offer ----
   listOffers: () => request('/offers'),
   getOffer: (applicationId) => request(`/applications/${applicationId}/offer`),

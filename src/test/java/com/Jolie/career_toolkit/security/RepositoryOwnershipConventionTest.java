@@ -46,7 +46,9 @@ class RepositoryOwnershipConventionTest {
             "BlockRepository",
             "JobApplicationRepository",
             "ResumeVersionRepository",
-            "ResumeFileRepository"
+            "ResumeFileRepository",
+            "ProjectRepository",
+            "AnswerPresetRepository"
     );
 
     /**
@@ -62,7 +64,8 @@ class RepositoryOwnershipConventionTest {
             "ReviewRepository",                   Set.of("UserId", "ApplicationId", "InterviewId"),
             "OfferRepository",                    Set.of("UserId", "ApplicationId"),
             "ResumeBlockRepository",              Set.of("UserId", "ResumeVersionId"),
-            "ExtractionCandidateRepository",      Set.of("UserId", "ResumeFileId")
+            "ExtractionCandidateRepository",      Set.of("UserId", "ResumeFileId"),
+            "AnswerPresetBlockRepository",        Set.of("UserId", "PresetId")
     );
 
     /**
@@ -73,7 +76,8 @@ class RepositoryOwnershipConventionTest {
      */
     private static final Set<String> GLOBAL_REFERENCE = Set.of(
             "CompanyRepository",
-            "IndustryRepository"
+            "IndustryRepository",
+            "QuestionTypeRepository"
     );
 
     /**

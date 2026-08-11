@@ -3,6 +3,7 @@ package com.Jolie.career_toolkit.security;
 import com.Jolie.career_toolkit.user.AppUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -92,6 +93,9 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        // 公開作品集是整個系統唯一不需要登入的端點。
+                        // 集中在 /api/public/** 底下，才不會不小心把別的東西一起開出去。
+                        .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/**").authenticated()
                         // 其餘（前端靜態資源）先全部放行，P2 會把 SPA build 進 static/
