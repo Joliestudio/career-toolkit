@@ -31,12 +31,19 @@ services:
     build: .
     container_name: ct-app
     ports:
-      # 綁 127.0.0.1，不是預設的 0.0.0.0。
+      # 對外用 8082，容器內仍是 8080。
       #
-      # cloudflared 是從本機連過來的，所以 localhost 就夠。綁到所有介面的話，
-      # 同網段的人可以直接連 8080 —— 那等於繞過了 Cloudflare 這一層
-      # （包括之後可能加上的 Cloudflare Access 門禁）。
-      - "127.0.0.1:8080:8080"
+      # 這台機器上 8080 與 8081 都已經有人：
+      #   8080 → JOLIE_PROJECT 的後端（jolie.cjinsightflow.com 的路由寫死指向它）
+      #   8081 → 另一個 Quarkus dev 專案
+      # 同一台機器上兩個服務不可能共用一個 port——誰先啟動誰佔到，
+      # 另一個就起不來；更糟的情況是兩個網域都連到同一個 app，
+      # 而且看起來「好像有在動」，很難聯想到是 port 撞了。
+      #
+      # 綁 127.0.0.1 而不是預設的 0.0.0.0：cloudflared 是從本機連過來的，
+      # localhost 就夠。綁到所有介面的話，同網段的人可以直接連進來，
+      # 那等於繞過了 Cloudflare 這一層（包括之後可能加上的 Access 門禁）。
+      - "127.0.0.1:8082:8080"
     environment:
       # host 是 db 不是 localhost——在 compose 網路裡 service 名稱就是 hostname，
       # localhost 在容器內指的是容器自己。這個坑幾乎每個人都會踩一次。

@@ -6,9 +6,12 @@
 瀏覽器  →  Cloudflare 邊緣（TLS 終止、Universal SSL）
              ↓  加密通道（由本機主動打出去）
        cloudflared（Windows 服務，讀 C:\ProgramData\cloudflared\token）
-             ↓  http://localhost:8080
-       ct-app 容器  →  ct-postgres 容器
+             ↓  http://localhost:8082
+       ct-app 容器（內部 8080）  →  ct-postgres 容器
 ```
+
+> 同一條 tunnel 上還有 `jolie.cjinsightflow.com` → `localhost:8080`（JOLIE_PROJECT）。
+> 兩個站各自佔一個 port，不能重複。
 
 **不需要固定 IP、不用開路由器防火牆** —— 連線是由內往外打的。代價是電腦要開著。
 
@@ -29,9 +32,29 @@ Zero Trust → Networks → Tunnels → `jolie-tunnel` → Public Hostname → A
 | Subdomain | `career-toolkit` |
 | Domain | `cjinsightflow.com` |
 | Service Type | `HTTP` |
-| URL | `localhost:8080` |
+| URL | **`localhost:8082`** |
 
 > token 管理的 tunnel 沒有本機路由設定檔，這一步只能在儀表板做。
+
+⚠️ **兩件容易出錯的事**
+
+1. **冒號不能漏。** `localhost8080` 會被當成一個叫這個名字的主機去解析，
+   結果是 502，而且錯誤訊息完全看不出是打錯字。
+
+2. **不能用 8080 或 8081。** 這台機器上那兩個 port 已經有人：
+
+   | Port | 誰在用 |
+   |---|---|
+   | 8080 | `JOLIE_PROJECT` 的後端（`jolie.cjinsightflow.com` 的路由指向它） |
+   | 8081 | `Downloads\code-with-quarkus` 的 Quarkus dev 模式 |
+
+   同一台機器上兩個服務不可能共用一個 port —— 誰先啟動誰佔到，另一個就起不來；
+   更糟的情況是兩個網域都連到同一個 app，而且看起來「好像有在動」，
+   很難聯想到是 port 撞了。
+
+   所以 career-toolkit 對外用 **8082**（容器內部仍是 8080，只是映射不同）。
+   要換 port 的話改 `compose.yaml` 的 `ports:` 左邊那個數字，然後
+   **記得同步改 Cloudflare 的路由** —— 兩邊不一致就是 502。
 
 DNS 記錄 Cloudflare 會自動建立（CNAME 指向 tunnel），不用手動加。
 
@@ -58,7 +81,7 @@ docker compose up --build -d
 
 ```bash
 # 本機
-curl -s localhost:8080/actuator/health          # {"status":"UP"}
+curl -s localhost:8082/actuator/health          # {"status":"UP"}
 
 # 外網
 curl -sI https://career-toolkit.cjinsightflow.com | head -3
@@ -96,7 +119,8 @@ docker compose up -d
 
 | 症狀 | 原因 |
 |---|---|
-| 網域回 **502** | 本機沒有 origin。`docker compose ps` 看容器是不是在跑 |
+| 網域回 **502** | 本機沒有 origin。三個常見原因：容器沒跑（`docker compose ps`）、路由的 URL 打錯字（`localhost8082` 少了冒號）、或路由指向的 port 不對 |
+| `jolie` 和 `career-toolkit` 顯示同一個網站 | 兩條路由指向同一個 port。career-toolkit 要用 **8082** |
 | 網域回 **1033 / tunnel error** | `cloudflared` 服務沒跑。`services.msc` 裡找 Cloudflare Tunnel |
 | 應用**啟動失敗**說找不到 `DB_PASSWORD` | 沒建 `.env`。這是預期行為，不是 bug |
 | 登入成功但下一個請求 401 | cookie 沒被存。檢查是不是用 `http://` 連正式網域（Secure cookie 不會經 HTTP 送出） |
