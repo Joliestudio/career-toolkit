@@ -14,6 +14,12 @@ spring:
         format_sql: true
   flyway:
     enabled: true
+  servlet:
+    multipart:
+      # 履歷不會超過 10MB。設上限是第一道防線——沒有上限的話，
+      # 一個人上傳一個 2GB 的檔案就能把磁碟和記憶體吃光。
+      max-file-size: 10MB
+      max-request-size: 12MB
   session:
     # session 存進資料庫，重啟應用不會把所有人登出，停權時也能直接刪掉某人的 session
     store-type: jdbc
@@ -30,6 +36,15 @@ server:
         http-only: true       # JavaScript 讀不到 session cookie，降低 XSS 竊取的風險
         same-site: lax        # 擋掉大部分跨站請求，是 CSRF 防護之外的第二層
         secure: ${COOKIE_SECURE:false}   # P8 上線走 HTTPS 時設成 true
+
+app:
+  storage:
+    # 上傳的履歷檔存這裡。容器裡對應一個 named volume，
+    # 所以 docker compose down && up 之後檔案還在。
+    #
+    # 不存進資料庫的 bytea：每次 pg_dump 都會把所有履歷一起倒出來，
+    # 而且一個不小心的 SELECT * 就把整批二進位資料拉進記憶體。
+    local-root: ${STORAGE_ROOT:./data/files}
 
 # logging 必須在 root level。之前它被縮排在 spring: 底下，
 # Spring 完全不會綁定，也不會發出任何警告——設定就這樣靜默失效。

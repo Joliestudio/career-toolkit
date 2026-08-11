@@ -316,6 +316,26 @@ body {
 .library-title { flex: 1; min-width: 0; }
 .library-item .btn { padding: .2rem .55rem; font-size: .8rem; }
 
+/* ---------- 履歷匯入 ---------- */
+
+.upload-btn { display: inline-flex; align-items: center; }
+.parse-error { font-size: .82rem; margin-top: .2rem; }
+
+.candidates { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+.candidate {
+  display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+  padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 8px;
+  font-size: .88rem;
+}
+.candidate-accepted, .candidate-rejected { opacity: .55; }
+.candidate-name { flex: 1; min-width: 6rem; }
+.candidate-confidence { font-size: .8rem; white-space: nowrap; }
+.candidate .btn { padding: .2rem .6rem; font-size: .8rem; }
+.candidate-note {
+  margin-top: 1rem; font-size: .85rem;
+  border-left: 3px solid var(--border); padding-left: .7rem;
+}
+
 /* ---------- 列印 ---------- */
 
 @media print {
