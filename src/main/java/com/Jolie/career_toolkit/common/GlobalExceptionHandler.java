@@ -3,6 +3,7 @@ package com.Jolie.career_toolkit.common;
 import com.Jolie.career_toolkit.application.IllegalStatusTransitionException;
 import com.Jolie.career_toolkit.auth.EmailAlreadyRegisteredException;
 import com.Jolie.career_toolkit.block.BlockNotFoundException;
+import com.Jolie.career_toolkit.resume.ResumeVersionLockedException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,6 +84,25 @@ public class GlobalExceptionHandler {
         problem.setProperty("from", ex.getFrom());
         problem.setProperty("to", ex.getTo());
         problem.setProperty("allowed", ex.getAllowed());
+        decorate(problem, request);
+
+        return problem;
+    }
+
+    /**
+     * 已鎖定的履歷版本不能再改。
+     *
+     * 409 而不是 400：請求本身沒有問題，是資源目前的狀態不允許這個操作。
+     * 400 會讓前端以為是使用者輸入錯了。
+     */
+    @ExceptionHandler(ResumeVersionLockedException.class)
+    public ProblemDetail handleResumeLocked(ResumeVersionLockedException ex,
+                                            HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                "這份履歷已鎖定，不能再修改。要改的話請先複製一份。");
+        problem.setType(URI.create(BASE_TYPE + "resume-version-locked"));
+        problem.setTitle("Resume version locked");
         decorate(problem, request);
 
         return problem;
